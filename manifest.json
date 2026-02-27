@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Time Care to Calendar",
+  "version": "1.0",
+  "description": "Download your Time Care schedule as a calendar file",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "options_page": "options.html",
+  "icons": {
+    "128": "icon.png"
+  }
+}

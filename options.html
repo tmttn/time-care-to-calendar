@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      max-width: 500px;
+      margin: 20px auto;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      color: #333;
+    }
+    h2 { margin: 0 0 16px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+    }
+    th, td {
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid #eee;
+    }
+    th {
+      font-weight: 600;
+      border-bottom: 2px solid #ccc;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 4px 6px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-size: 13px;
+      box-sizing: border-box;
+    }
+    select {
+      padding: 4px;
+      font-size: 13px;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+    button {
+      padding: 8px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
+    }
+    button:hover { background: #f0f0f0; }
+    #save {
+      background: #0b57d0;
+      color: #fff;
+      border-color: #0b57d0;
+      font-weight: 600;
+    }
+    #save:hover { background: #0842a0; }
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #c00;
+      cursor: pointer;
+      padding: 2px 6px;
+      font-size: 16px;
+    }
+    .delete-btn:hover { color: #900; }
+    #status {
+      margin-left: 8px;
+      color: #2e7d32;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>Dienstcodes configureren</h2>
+  <table>
+    <thead>
+      <tr><th>Code</th><th>Naam</th><th>Actie</th><th></th></tr>
+    </thead>
+    <tbody id="codes"></tbody>
+  </table>
+  <div class="actions">
+    <button id="add">+ Code toevoegen</button>
+    <button id="save">Opslaan</button>
+    <span id="status">Opgeslagen!</span>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
