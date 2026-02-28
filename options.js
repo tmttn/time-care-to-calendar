@@ -53,7 +53,7 @@ function addRow(code, name, color, action) {
   tdAction.appendChild(select);
 
   function updateStyle() {
-    tr.style.background = select.value === 'unassigned' ? '#fff3cd' : '';
+    tr.className = select.value === 'unassigned' ? 'unassigned-row' : '';
   }
   select.addEventListener('change', updateStyle);
   updateStyle();
@@ -96,7 +96,7 @@ document.getElementById('save').addEventListener('click', function () {
 
   saveConfig(codes, function () {
     var status = document.getElementById('status');
-    status.style.display = 'inline';
-    setTimeout(function () { status.style.display = 'none'; }, 2000);
+    status.classList.add('visible');
+    setTimeout(function () { status.classList.remove('visible'); }, 2000);
   });
 });

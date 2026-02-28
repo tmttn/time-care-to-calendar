@@ -1,6 +1,12 @@
 var data = null;
 var weekFilter = {};
 
+// Settings link
+document.getElementById('settings').addEventListener('click', function (e) {
+  e.preventDefault();
+  chrome.runtime.openOptionsPage();
+});
+
 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
   chrome.scripting.executeScript(
     { target: { tabId: tabs[0].id }, files: ['content.js'] },
@@ -8,8 +14,8 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       var result = results && results[0] && results[0].result;
 
       if (!result || result.error) {
-        document.getElementById('message').textContent =
-          (result && result.error) || 'Kon rooster niet laden.';
+        var msg = document.getElementById('message');
+        msg.textContent = (result && result.error) || 'Kon rooster niet laden.';
         return;
       }
 
@@ -45,7 +51,6 @@ function applyConfig(shifts, codes) {
 
     if (conf.action === 'skip') return;
 
-    // Night shift: if end time <= start time, end date is next day
     var fromMin = toMinutes(s.from);
     var toMin = toMinutes(s.to);
     var endDate = s.date;
@@ -154,7 +159,6 @@ function render(data) {
     return;
   }
 
-  // Collect weeks for filter
   var weeks = [];
   data.events.forEach(function (e) {
     var w = getWeekNumber(e.date);
@@ -199,11 +203,9 @@ function renderTable() {
   var lastWeek = null;
   var stats = {};
 
-  // Conflict warning
   var conflictBox = document.getElementById('conflicts');
   conflictBox.textContent = '';
-  var hasConflicts = Object.keys(conflicts).length > 0;
-  if (hasConflicts) {
+  if (Object.keys(conflicts).length > 0) {
     var warning = document.createElement('div');
     warning.className = 'warning conflict';
     var strong = document.createElement('strong');
@@ -215,11 +217,16 @@ function renderTable() {
   filtered.forEach(function (e, i) {
     var week = getWeekNumber(e.date);
 
+    // Week separator with label
     if (lastWeek !== null && week !== lastWeek) {
       var sep = document.createElement('tr');
       sep.className = 'week-sep';
       var td = document.createElement('td');
       td.colSpan = 4;
+      var lbl = document.createElement('span');
+      lbl.className = 'week-label';
+      lbl.textContent = 'Week ' + week;
+      td.appendChild(lbl);
       sep.appendChild(td);
       tbody.appendChild(sep);
     }
@@ -255,7 +262,7 @@ function renderTable() {
     tbody.appendChild(tr);
   });
 
-  // Total hours row
+  // Total hours
   var totalRow = document.createElement('tr');
   totalRow.className = 'total-row';
   var tdLabel = document.createElement('td');
@@ -281,7 +288,7 @@ function renderTable() {
     statsEl.appendChild(span);
   });
 
-  // Update button
+  // Button text
   var btn = document.getElementById('download');
   btn.textContent = 'Download ' + filtered.length + ' diensten als .ics';
 }
@@ -326,6 +333,16 @@ function download() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+
+  // Success feedback
+  var btn = document.getElementById('download');
+  var original = btn.textContent;
+  btn.textContent = 'Gedownload!';
+  btn.classList.add('success');
+  setTimeout(function () {
+    btn.textContent = original;
+    btn.classList.remove('success');
+  }, 1500);
 }
 
 function copyText() {
