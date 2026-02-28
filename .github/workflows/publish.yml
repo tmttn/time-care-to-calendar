@@ -1,0 +1,23 @@
+name: Publish to Chrome Web Store
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Zip extension
+        run: zip -r extension.zip manifest.json popup.html popup.js content.js config.js options.html options.js background.js icon.png
+
+      - name: Upload & publish to Chrome Web Store
+        uses: nicolo-ribaudo/chome-webstore-upload@v0.5.2
+        with:
+          extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
+          client-id: ${{ secrets.CHROME_CLIENT_ID }}
+          refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          file-name: extension.zip
+          publish: true
