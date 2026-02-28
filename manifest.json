@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Time Care to Calendar",
-  "version": "1.8",
+  "version": "1.9",
   "description": "Download your Time Care schedule as a calendar file",
-  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "permissions": ["activeTab", "scripting", "storage", "tabs", "identity"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": "icon.png"

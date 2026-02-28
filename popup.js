@@ -1,10 +1,23 @@
 var data = null;
 var weekFilter = {};
+var mergeEnabled = false;
+var exportHistory = [];
+
+// Load export history
+chrome.storage.local.get({ exportHistory: [] }, function (result) {
+  exportHistory = result.exportHistory;
+});
 
 // Settings link
 document.getElementById('settings').addEventListener('click', function (e) {
   e.preventDefault();
   chrome.runtime.openOptionsPage();
+});
+
+// Merge toggle
+document.getElementById('merge-toggle').addEventListener('change', function () {
+  mergeEnabled = this.checked;
+  renderTable();
 });
 
 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
@@ -94,6 +107,12 @@ function formatTime(hhmm) {
   return s.slice(0, 2) + ':' + s.slice(2);
 }
 
+function formatHours(totalHours) {
+  var h = Math.floor(totalHours);
+  var m = Math.round((totalHours - h) * 60);
+  return h + ':' + (m < 10 ? '0' : '') + m;
+}
+
 function calcHours(from, to) {
   var startMin = toMinutes(from);
   var endMin = toMinutes(to);
@@ -108,6 +127,13 @@ function getWeekNumber(dateStr) {
   d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
   var week1 = new Date(d.getFullYear(), 0, 4);
   return 1 + Math.round(((d - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+}
+
+function getEventUid(e) {
+  var startDate = e.date.replace(/-/g, '');
+  var from = e.from.padStart(4, '0');
+  var to = e.to.padStart(4, '0');
+  return startDate + '-' + from + '-' + to + '@timecare';
 }
 
 function findConflicts(events) {
@@ -130,11 +156,44 @@ function findConflicts(events) {
   return conflicts;
 }
 
+function mergeConsecutiveShifts(events) {
+  if (events.length === 0) return events;
+  var sorted = events.slice().sort(function (a, b) {
+    if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+    return toMinutes(a.from) - toMinutes(b.from);
+  });
+  var merged = [sorted[0]];
+  for (var i = 1; i < sorted.length; i++) {
+    var prev = merged[merged.length - 1];
+    var curr = sorted[i];
+    if (prev.date === curr.date && prev.to === curr.from) {
+      merged[merged.length - 1] = {
+        date: prev.date,
+        endDate: curr.endDate,
+        shortDate: prev.shortDate,
+        from: prev.from,
+        to: curr.to,
+        code: prev.code + ' + ' + curr.code,
+        baseCode: prev.baseCode,
+        name: prev.name + ' + ' + curr.name,
+        color: prev.color
+      };
+    } else {
+      merged.push(curr);
+    }
+  }
+  return merged;
+}
+
 function getFilteredEvents() {
-  return data.events.filter(function (e) {
+  var filtered = data.events.filter(function (e) {
     var week = getWeekNumber(e.date);
     return weekFilter[week] !== false;
   });
+  if (mergeEnabled) {
+    filtered = mergeConsecutiveShifts(filtered);
+  }
+  return filtered;
 }
 
 function render(data) {
@@ -166,10 +225,24 @@ function render(data) {
     if (weekFilter[w] === undefined) weekFilter[w] = true;
   });
 
+  // Show export history info
+  var previouslyExported = 0;
+  data.events.forEach(function (e) {
+    if (exportHistory.indexOf(getEventUid(e)) !== -1) previouslyExported++;
+  });
+  if (previouslyExported > 0) {
+    var infoBar = document.getElementById('export-info');
+    var info = document.createElement('div');
+    info.className = 'info-bar';
+    info.textContent = previouslyExported + ' van ' + data.events.length + ' diensten eerder geëxporteerd';
+    infoBar.appendChild(info);
+  }
+
   renderWeekFilter(weeks);
   renderTable();
 
   document.getElementById('download').addEventListener('click', download);
+  document.getElementById('gcal').addEventListener('click', addToGoogleCalendar);
   document.getElementById('copy').addEventListener('click', copyText);
 }
 
@@ -200,8 +273,17 @@ function renderTable() {
   var tbody = document.getElementById('shifts');
   tbody.textContent = '';
   var totalHours = 0;
+  var weekHours = 0;
   var lastWeek = null;
   var stats = {};
+  var uniqueWeeks = [];
+
+  // Count unique weeks
+  filtered.forEach(function (e) {
+    var w = getWeekNumber(e.date);
+    if (uniqueWeeks.indexOf(w) === -1) uniqueWeeks.push(w);
+  });
+  var multipleWeeks = uniqueWeeks.length > 1;
 
   var conflictBox = document.getElementById('conflicts');
   conflictBox.textContent = '';
@@ -217,8 +299,13 @@ function renderTable() {
   filtered.forEach(function (e, i) {
     var week = getWeekNumber(e.date);
 
-    // Week separator with label
+    // Week separator with subtotal for previous week
     if (lastWeek !== null && week !== lastWeek) {
+      if (multipleWeeks) {
+        addWeekSubtotal(tbody, lastWeek, weekHours);
+      }
+      weekHours = 0;
+
       var sep = document.createElement('tr');
       sep.className = 'week-sep';
       var td = document.createElement('td');
@@ -234,6 +321,7 @@ function renderTable() {
 
     var hours = calcHours(e.from, e.to);
     totalHours += hours;
+    weekHours += hours;
 
     stats[e.name] = (stats[e.name] || 0) + 1;
 
@@ -262,6 +350,11 @@ function renderTable() {
     tbody.appendChild(tr);
   });
 
+  // Subtotal for last week
+  if (multipleWeeks && lastWeek !== null) {
+    addWeekSubtotal(tbody, lastWeek, weekHours);
+  }
+
   // Total hours
   var totalRow = document.createElement('tr');
   totalRow.className = 'total-row';
@@ -270,9 +363,7 @@ function renderTable() {
   tdLabel.textContent = 'Totaal';
   var tdHours = document.createElement('td');
   tdHours.className = 'time';
-  var h = Math.floor(totalHours);
-  var m = Math.round((totalHours - h) * 60);
-  tdHours.textContent = h + ':' + (m < 10 ? '0' : '') + m;
+  tdHours.textContent = formatHours(totalHours);
   totalRow.appendChild(tdLabel);
   totalRow.appendChild(tdHours);
   tbody.appendChild(totalRow);
@@ -293,16 +384,27 @@ function renderTable() {
   btn.textContent = 'Download ' + filtered.length + ' diensten als .ics';
 }
 
-function download() {
-  var filtered = getFilteredEvents();
-  if (filtered.length === 0) return;
+function addWeekSubtotal(tbody, week, hours) {
+  var row = document.createElement('tr');
+  row.className = 'week-subtotal';
+  var tdLabel = document.createElement('td');
+  tdLabel.colSpan = 3;
+  tdLabel.textContent = 'Week ' + week;
+  var tdHours = document.createElement('td');
+  tdHours.className = 'time';
+  tdHours.textContent = formatHours(hours);
+  row.appendChild(tdLabel);
+  row.appendChild(tdHours);
+  tbody.appendChild(row);
+}
 
-  var lines = filtered.map(function (e) {
+function buildIcsEvents(events) {
+  return events.map(function (e) {
     var startDate = e.date.replace(/-/g, '');
     var endDatePart = e.endDate.replace(/-/g, '');
     var from = e.from.padStart(4, '0');
     var to = e.to.padStart(4, '0');
-    var uid = startDate + '-' + from + '-' + to + '@timecare';
+    var uid = getEventUid(e);
     return (
       'BEGIN:VEVENT\r\n' +
       'UID:' + uid + '\r\n' +
@@ -313,6 +415,26 @@ function download() {
       'END:VEVENT'
     );
   });
+}
+
+function saveExportedUids(events) {
+  var uids = events.map(getEventUid);
+  chrome.storage.local.get({ exportHistory: [] }, function (result) {
+    var existing = result.exportHistory;
+    uids.forEach(function (uid) {
+      if (existing.indexOf(uid) === -1) existing.push(uid);
+    });
+    // Keep only last 500 entries
+    if (existing.length > 500) existing = existing.slice(-500);
+    chrome.storage.local.set({ exportHistory: existing });
+  });
+}
+
+function download() {
+  var filtered = getFilteredEvents();
+  if (filtered.length === 0) return;
+
+  var lines = buildIcsEvents(filtered);
 
   var ics =
     'BEGIN:VCALENDAR\r\n' +
@@ -334,6 +456,9 @@ function download() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 
+  // Save to export history
+  saveExportedUids(filtered);
+
   // Success feedback
   var btn = document.getElementById('download');
   var original = btn.textContent;
@@ -343,6 +468,107 @@ function download() {
     btn.textContent = original;
     btn.classList.remove('success');
   }, 1500);
+}
+
+function addToGoogleCalendar() {
+  var filtered = getFilteredEvents();
+  if (filtered.length === 0) return;
+
+  chrome.storage.sync.get({ gcalClientId: '' }, function (result) {
+    if (!result.gcalClientId) {
+      chrome.runtime.openOptionsPage();
+      return;
+    }
+    doGoogleCalendarAuth(result.gcalClientId, filtered);
+  });
+}
+
+function doGoogleCalendarAuth(clientId, events) {
+  var btn = document.getElementById('gcal');
+  btn.textContent = 'Inloggen...';
+  btn.disabled = true;
+
+  var redirectUrl = chrome.identity.getRedirectURL();
+  var authUrl = 'https://accounts.google.com/o/oauth2/v2/auth' +
+    '?client_id=' + encodeURIComponent(clientId) +
+    '&response_type=token' +
+    '&redirect_uri=' + encodeURIComponent(redirectUrl) +
+    '&scope=' + encodeURIComponent('https://www.googleapis.com/auth/calendar.events');
+
+  chrome.identity.launchWebAuthFlow(
+    { url: authUrl, interactive: true },
+    function (responseUrl) {
+      if (chrome.runtime.lastError || !responseUrl) {
+        btn.textContent = 'Login mislukt';
+        btn.disabled = false;
+        setTimeout(function () { btn.textContent = 'Google Calendar'; }, 2000);
+        return;
+      }
+
+      var match = responseUrl.match(/access_token=([^&]*)/);
+      if (!match) {
+        btn.textContent = 'Login mislukt';
+        btn.disabled = false;
+        setTimeout(function () { btn.textContent = 'Google Calendar'; }, 2000);
+        return;
+      }
+
+      createCalendarEvents(match[1], events);
+    }
+  );
+}
+
+function createCalendarEvents(token, events) {
+  var btn = document.getElementById('gcal');
+  var total = events.length;
+  var done = 0;
+  var errors = 0;
+
+  events.forEach(function (e) {
+    var from = e.from.padStart(4, '0');
+    var to = e.to.padStart(4, '0');
+
+    var event = {
+      iCalUID: getEventUid(e),
+      summary: e.name,
+      description: e.code,
+      start: {
+        dateTime: e.date + 'T' + from.slice(0, 2) + ':' + from.slice(2) + ':00',
+        timeZone: 'Europe/Brussels'
+      },
+      end: {
+        dateTime: e.endDate + 'T' + to.slice(0, 2) + ':' + to.slice(2) + ':00',
+        timeZone: 'Europe/Brussels'
+      }
+    };
+
+    fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events/import', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(event)
+    }).then(function (response) {
+      done++;
+      if (!response.ok) errors++;
+      btn.textContent = done + '/' + total + ' toegevoegd...';
+      if (done === total) {
+        saveExportedUids(events);
+        if (errors === 0) {
+          btn.textContent = 'Toegevoegd!';
+          btn.classList.add('success');
+        } else {
+          btn.textContent = errors + ' fouten';
+        }
+        btn.disabled = false;
+        setTimeout(function () {
+          btn.textContent = 'Google Calendar';
+          btn.classList.remove('success');
+        }, 2000);
+      }
+    });
+  });
 }
 
 function copyText() {

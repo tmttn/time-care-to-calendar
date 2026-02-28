@@ -8,6 +8,8 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 13px;
       margin: 0;
+      color: #333;
+      background: #fff;
     }
     .header {
       display: flex;
@@ -62,7 +64,7 @@
       white-space: nowrap;
       font-variant-numeric: tabular-nums;
     }
-    tr:hover:not(.week-sep):not(.total-row) {
+    tr:hover:not(.week-sep):not(.total-row):not(.week-subtotal) {
       background: #f8f9fa;
     }
     .dot {
@@ -83,6 +85,12 @@
       color: #aaa;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+    }
+    .week-subtotal td {
+      border-bottom: none;
+      font-size: 11px;
+      color: #888;
+      padding: 2px 6px;
     }
     .total-row td {
       border-top: 2px solid #333;
@@ -109,6 +117,15 @@
       display: block;
       margin-bottom: 2px;
     }
+    .info-bar {
+      background: #e8f0fe;
+      border: 1px solid #c2d7f5;
+      border-radius: 6px;
+      padding: 6px 10px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: #1a56c4;
+    }
     #message {
       color: #999;
       text-align: center;
@@ -130,11 +147,18 @@
     #overview {
       animation: fadeIn 0.2s ease;
     }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
     #week-filter {
       display: flex;
       flex-wrap: wrap;
       gap: 4px;
-      margin-bottom: 8px;
+      flex: 1;
     }
     .week-chip {
       font-size: 11px;
@@ -157,6 +181,20 @@
     .week-chip input {
       display: none;
     }
+    .merge-toggle {
+      font-size: 11px;
+      color: #888;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .merge-toggle input {
+      margin: 0;
+      cursor: pointer;
+    }
     #stats {
       display: flex;
       flex-wrap: wrap;
@@ -174,6 +212,7 @@
       display: flex;
       gap: 6px;
       margin-top: 12px;
+      flex-wrap: wrap;
     }
     button {
       flex: 1;
@@ -203,9 +242,50 @@
       background: #0842a0;
       border-color: #0842a0;
     }
+    #gcal {
+      flex: 2;
+      background: #fff;
+      color: #333;
+      border-color: #ddd;
+      font-weight: 500;
+    }
+    #gcal:hover {
+      background: #f5f5f5;
+      border-color: #bbb;
+    }
     .success {
       background: #2e7d32 !important;
       border-color: #2e7d32 !important;
+      color: #fff !important;
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      body { background: #202124; color: #e0e0e0; }
+      .header { border-bottom-color: #3c4043; }
+      .header a { color: #8ab4f8; }
+      th { background: #202124; color: #9aa0a6; border-bottom-color: #3c4043; }
+      td { border-bottom-color: #2d2e30; }
+      tr:hover:not(.week-sep):not(.total-row):not(.week-subtotal) { background: #2d2e30; }
+      .total-row td { border-top-color: #bbb; }
+      .week-subtotal td { color: #9aa0a6; }
+      button { background: #2d2e30; color: #e0e0e0; border-color: #3c4043; }
+      button:hover { background: #3c4043; border-color: #5f6368; }
+      #download { background: #1a73e8; border-color: #1a73e8; color: #fff; }
+      #download:hover { background: #1557b0; border-color: #1557b0; }
+      #gcal { background: #2d2e30; color: #e0e0e0; border-color: #3c4043; }
+      #gcal:hover { background: #3c4043; border-color: #5f6368; }
+      .week-chip { border-color: #3c4043; color: #9aa0a6; }
+      .week-chip:hover { border-color: #5f6368; }
+      .week-chip.active { background: #1a3a5c; border-color: #1a73e8; color: #8ab4f8; }
+      .stat-chip { background: #2d2e30; color: #9aa0a6; }
+      .merge-toggle { color: #9aa0a6; }
+      .warning { background: #3d3520; border-color: #8a7a3a; color: #e0c060; }
+      .warning.conflict { background: #3d2020; border-color: #8a3a3a; color: #e08080; }
+      .conflict-row { background: #3d2020 !important; }
+      .info-bar { background: #1a3a5c; border-color: #2a5a8c; color: #8ab4f8; }
+      #message { color: #9aa0a6; }
+      .spinner { border-color: #3c4043; border-top-color: #8ab4f8; }
     }
   </style>
 </head>
@@ -220,7 +300,14 @@
     <div id="overview" style="display:none;">
       <div id="unknown"></div>
       <div id="conflicts"></div>
-      <div id="week-filter"></div>
+      <div id="export-info"></div>
+      <div class="toolbar">
+        <div id="week-filter"></div>
+        <label class="merge-toggle">
+          <input type="checkbox" id="merge-toggle">
+          Samenvoegen
+        </label>
+      </div>
       <div style="max-height: 400px; overflow-y: auto;">
         <table>
           <thead>
@@ -232,6 +319,7 @@
       <div id="stats"></div>
       <div class="buttons">
         <button id="download"></button>
+        <button id="gcal">Google Calendar</button>
         <button id="copy">Kopieer als tekst</button>
       </div>
     </div>

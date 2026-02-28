@@ -9,6 +9,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 14px;
       color: #333;
+      background: #fff;
     }
     .page-header {
       display: flex;
@@ -67,6 +68,8 @@
       font-size: 13px;
       box-sizing: border-box;
       transition: border-color 0.15s;
+      background: #fff;
+      color: #333;
     }
     input[type="text"]:focus {
       outline: none;
@@ -78,6 +81,7 @@
       border: 1px solid #ddd;
       border-radius: 4px;
       background: #fff;
+      color: #333;
       cursor: pointer;
     }
     select:focus {
@@ -88,6 +92,7 @@
       display: flex;
       gap: 8px;
       align-items: center;
+      flex-wrap: wrap;
     }
     button {
       padding: 8px 16px;
@@ -96,6 +101,7 @@
       border: 1px solid #ddd;
       border-radius: 6px;
       background: #fff;
+      color: #333;
       transition: all 0.15s;
     }
     button:hover {
@@ -143,6 +149,45 @@
     .unassigned-row {
       background: #fffde7;
     }
+    .config-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #eee;
+    }
+    .config-actions button {
+      font-size: 12px;
+      padding: 6px 12px;
+      color: #666;
+    }
+    #import-file {
+      display: none;
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      body { background: #202124; color: #e0e0e0; }
+      th { color: #9aa0a6; border-bottom-color: #3c4043; }
+      td { border-bottom-color: #2d2e30; }
+      tr:hover { background: #2d2e30; }
+      input[type="text"] { background: #2d2e30; color: #e0e0e0; border-color: #3c4043; }
+      input[type="text"]:focus { border-color: #8ab4f8; }
+      input[type="color"] { border-color: #3c4043; }
+      select { background: #2d2e30; color: #e0e0e0; border-color: #3c4043; }
+      select:focus { border-color: #8ab4f8; }
+      button { background: #2d2e30; color: #e0e0e0; border-color: #3c4043; }
+      button:hover { background: #3c4043; border-color: #5f6368; }
+      #save { background: #1a73e8; border-color: #1a73e8; color: #fff; }
+      #save:hover { background: #1557b0; border-color: #1557b0; }
+      .delete-btn { color: #5f6368; }
+      .delete-btn:hover { color: #f28b82; background: #3d2020; }
+      #status { color: #81c995; }
+      .unassigned-row { background: #3d3520; }
+      .section-label { color: #9aa0a6; }
+      .config-actions { border-top-color: #3c4043; }
+      .config-actions button { color: #9aa0a6; }
+    }
   </style>
 </head>
 <body>
@@ -162,6 +207,21 @@
     <button id="save">Opslaan</button>
     <span id="status">Opgeslagen!</span>
   </div>
+  <div class="config-actions">
+    <button id="export-config">Exporteer configuratie</button>
+    <button id="import-config">Importeer configuratie</button>
+    <input type="file" id="import-file" accept=".json">
+  </div>
+
+  <div class="section-label" style="margin-top: 24px;">Google Calendar</div>
+  <div style="margin-bottom: 8px; font-size: 12px; color: #888;">
+    OAuth Client ID voor directe Google Calendar import.
+  </div>
+  <div style="display: flex; gap: 8px; align-items: center;">
+    <input type="text" id="gcal-client-id" placeholder="Client ID" style="flex: 1;">
+    <button id="save-gcal">Opslaan</button>
+  </div>
+  <span id="gcal-status" style="font-size: 12px; color: #2e7d32; opacity: 0; transition: opacity 0.3s;">Opgeslagen!</span>
 
   <script src="config.js"></script>
   <script src="options.js"></script>
