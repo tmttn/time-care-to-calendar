@@ -64,7 +64,7 @@
       white-space: nowrap;
       font-variant-numeric: tabular-nums;
     }
-    tr:hover:not(.week-sep):not(.total-row):not(.week-subtotal) {
+    tr:hover:not(.total-row):not(.week-subtotal) {
       background: #f8f9fa;
     }
     .dot {
@@ -75,11 +75,6 @@
       margin-right: 5px;
       vertical-align: middle;
     }
-    .week-sep td {
-      border-bottom: none;
-      padding: 2px 6px;
-      height: auto;
-    }
     .week-label {
       font-size: 10px;
       color: #aaa;
@@ -88,9 +83,10 @@
     }
     .week-subtotal td {
       border-bottom: none;
+      border-top: 1px solid #e0e0e0;
       font-size: 11px;
       color: #888;
-      padding: 2px 6px;
+      padding: 6px 6px 8px;
     }
     .total-row td {
       border-top: 2px solid #333;
@@ -212,7 +208,6 @@
       display: flex;
       gap: 6px;
       margin-top: 12px;
-      flex-wrap: wrap;
     }
     button {
       flex: 1;
@@ -243,15 +238,10 @@
       border-color: #0842a0;
     }
     #gcal {
-      flex: 2;
-      background: #fff;
-      color: #333;
-      border-color: #ddd;
-      font-weight: 500;
+      flex: 1;
     }
-    #gcal:hover {
-      background: #f5f5f5;
-      border-color: #bbb;
+    #copy {
+      flex: 1;
     }
     .success {
       background: #2e7d32 !important;
@@ -266,15 +256,13 @@
       .header a { color: #8ab4f8; }
       th { background: #202124; color: #9aa0a6; border-bottom-color: #3c4043; }
       td { border-bottom-color: #2d2e30; }
-      tr:hover:not(.week-sep):not(.total-row):not(.week-subtotal) { background: #2d2e30; }
+      tr:hover:not(.total-row):not(.week-subtotal) { background: #2d2e30; }
       .total-row td { border-top-color: #bbb; }
-      .week-subtotal td { color: #9aa0a6; }
+      .week-subtotal td { color: #9aa0a6; border-top-color: #3c4043; }
       button { background: #2d2e30; color: #e0e0e0; border-color: #3c4043; }
       button:hover { background: #3c4043; border-color: #5f6368; }
       #download { background: #1a73e8; border-color: #1a73e8; color: #fff; }
       #download:hover { background: #1557b0; border-color: #1557b0; }
-      #gcal { background: #2d2e30; color: #e0e0e0; border-color: #3c4043; }
-      #gcal:hover { background: #3c4043; border-color: #5f6368; }
       .week-chip { border-color: #3c4043; color: #9aa0a6; }
       .week-chip:hover { border-color: #5f6368; }
       .week-chip.active { background: #1a3a5c; border-color: #1a73e8; color: #8ab4f8; }

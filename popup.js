@@ -299,23 +299,12 @@ function renderTable() {
   filtered.forEach(function (e, i) {
     var week = getWeekNumber(e.date);
 
-    // Week separator with subtotal for previous week
+    // Week boundary: subtotal for previous week
     if (lastWeek !== null && week !== lastWeek) {
       if (multipleWeeks) {
         addWeekSubtotal(tbody, lastWeek, weekHours);
       }
       weekHours = 0;
-
-      var sep = document.createElement('tr');
-      sep.className = 'week-sep';
-      var td = document.createElement('td');
-      td.colSpan = 4;
-      var lbl = document.createElement('span');
-      lbl.className = 'week-label';
-      lbl.textContent = 'Week ' + week;
-      td.appendChild(lbl);
-      sep.appendChild(td);
-      tbody.appendChild(sep);
     }
     lastWeek = week;
 
@@ -389,7 +378,10 @@ function addWeekSubtotal(tbody, week, hours) {
   row.className = 'week-subtotal';
   var tdLabel = document.createElement('td');
   tdLabel.colSpan = 3;
-  tdLabel.textContent = 'Week ' + week;
+  var lbl = document.createElement('span');
+  lbl.className = 'week-label';
+  lbl.textContent = 'Week ' + week;
+  tdLabel.appendChild(lbl);
   var tdHours = document.createElement('td');
   tdHours.className = 'time';
   tdHours.textContent = formatHours(hours);
