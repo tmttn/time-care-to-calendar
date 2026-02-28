@@ -7,8 +7,16 @@ Chrome extension that exports your [Time Care](https://timecare.com/) schedule a
 - Scrapes your schedule directly from the Time Care web app
 - Shows a preview of all shifts before downloading
 - Exports as `.ics` — works with Google Calendar, Apple Calendar, Outlook, etc.
-- Configurable shift codes with readable names
-- Auto-detects new codes and adds them to the config
+- Configurable shift codes with readable names and colors
+- Auto-detects new codes and adds them to the config as unassigned
+- Week filter — select which weeks to include in the export
+- Shift stats — see a frequency breakdown per shift type
+- Total hours summary
+- Night shift support — shifts crossing midnight are handled correctly
+- Conflict detection — overlapping shifts are highlighted
+- Copy as text — paste your schedule into chat or email
+- Auto-detect Time Care pages — badge indicator when on a schedule page
+- Keyboard shortcut (`Cmd+Shift+R` / `Ctrl+Shift+R`)
 - Deterministic event UIDs prevent duplicates on re-import
 - Brussels timezone support (`Europe/Brussels`)
 
@@ -22,10 +30,11 @@ Chrome extension that exports your [Time Care](https://timecare.com/) schedule a
 ## How to use
 
 1. Navigate to your Time Care schedule page
-2. Click the extension icon in the toolbar
-3. Review the shift overview
-4. Click **Download** to save the `.ics` file
-5. Import the file into your calendar app
+2. Click the extension icon in the toolbar (or press `Cmd+Shift+R`)
+3. Toggle weeks on/off to filter the export
+4. Review the shift overview, stats, and total hours
+5. Click **Download** to save the `.ics` file, or **Kopieer als tekst** to copy to clipboard
+6. Import the `.ics` file into your calendar app
 
 ## Configuration
 
@@ -33,7 +42,7 @@ Right-click the extension icon → **Options**, or go to `chrome://extensions` �
 
 From there you can:
 
-- **Add codes** with a readable name and set them to export
+- **Add codes** with a readable name, color, and action
 - **Skip codes** that are free days or not relevant
 - **Review unassigned codes** — new codes found on the page are automatically added here
 
@@ -52,18 +61,36 @@ From there you can:
 | `POTA` | — | Skip |
 | `BFU` | — | Skip |
 
+## Deployment
+
+Publishing to the Chrome Web Store is automated via GitHub Actions. Creating a GitHub release triggers the pipeline:
+
+```bash
+gh release create v1.5 --title "v1.5" --notes "Description of changes"
+```
+
+Requires the following repository secrets:
+
+- `CHROME_EXTENSION_ID`
+- `CHROME_CLIENT_ID`
+- `CHROME_REFRESH_TOKEN`
+
 ## Project structure
 
 ```
 time-care-to-calendar/
 ├── manifest.json     # Chrome extension manifest (V3)
 ├── popup.html        # Extension popup UI
-├── popup.js          # Popup logic, config filtering, ICS generation
+├── popup.js          # Popup logic, filtering, stats, ICS generation
 ├── content.js        # Content script that scrapes the Time Care table
 ├── config.js         # Shared config defaults and storage helpers
 ├── options.html      # Options page UI
 ├── options.js        # Options page logic
-└── icon.png          # Extension icon
+├── background.js     # Service worker for Time Care page detection
+├── icon.png          # Extension icon
+└── .github/
+    └── workflows/
+        └── publish.yml  # GitHub Actions pipeline for Chrome Web Store
 ```
 
 ## License
