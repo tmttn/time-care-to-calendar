@@ -83,10 +83,13 @@
     }
     .week-subtotal td {
       border-bottom: none;
-      border-top: 1px solid #e0e0e0;
+      border-top: 2px solid #e0e0e0;
       font-size: 11px;
       color: #888;
-      padding: 6px 6px 8px;
+      padding: 8px 6px 12px;
+    }
+    .week-subtotal + tr td {
+      padding-top: 8px;
     }
     .total-row td {
       border-top: 2px solid #333;
@@ -258,7 +261,7 @@
       td { border-bottom-color: #2d2e30; }
       tr:hover:not(.total-row):not(.week-subtotal) { background: #2d2e30; }
       .total-row td { border-top-color: #bbb; }
-      .week-subtotal td { color: #9aa0a6; border-top-color: #3c4043; }
+      .week-subtotal td { color: #9aa0a6; border-top-color: #444; }
       button { background: #2d2e30; color: #e0e0e0; border-color: #3c4043; }
       button:hover { background: #3c4043; border-color: #5f6368; }
       #download { background: #1a73e8; border-color: #1a73e8; color: #fff; }
