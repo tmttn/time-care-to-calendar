@@ -1,15 +1,27 @@
 {
   "manifest_version": 3,
   "name": "Time Care to Calendar",
-  "version": "1.0",
+  "version": "1.4",
   "description": "Download your Time Care schedule as a calendar file",
-  "permissions": ["activeTab", "scripting", "storage"],
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": "icon.png"
   },
+  "background": {
+    "service_worker": "background.js"
+  },
   "options_page": "options.html",
   "icons": {
     "128": "icon.png"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+R",
+        "mac": "Command+Shift+R"
+      },
+      "description": "Open rooster export"
+    }
   }
 }

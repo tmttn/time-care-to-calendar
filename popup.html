@@ -3,7 +3,7 @@
 <head>
   <style>
     body {
-      width: 360px;
+      width: 380px;
       padding: 12px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 13px;
@@ -16,7 +16,6 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 10px;
     }
     th, td {
       text-align: left;
@@ -31,6 +30,28 @@
       text-align: right;
       white-space: nowrap;
     }
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+    .week-sep td {
+      border-bottom: 2px solid #ddd;
+      padding: 0;
+      height: 6px;
+    }
+    .total-row td {
+      border-top: 2px solid #333;
+      border-bottom: none;
+      font-weight: 600;
+      padding-top: 6px;
+    }
+    .conflict-row {
+      background: #fde8e8;
+    }
     .warning {
       background: #fff3cd;
       border: 1px solid #ffc107;
@@ -39,6 +60,10 @@
       margin-bottom: 10px;
       font-size: 12px;
     }
+    .warning.conflict {
+      background: #fde8e8;
+      border-color: #e74c3c;
+    }
     .warning strong {
       display: block;
       margin-bottom: 2px;
@@ -46,8 +71,49 @@
     #message {
       color: #666;
     }
+    #week-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .week-chip {
+      font-size: 11px;
+      padding: 2px 8px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      cursor: pointer;
+      user-select: none;
+      color: #999;
+    }
+    .week-chip.active {
+      background: #e8f0fe;
+      border-color: #0b57d0;
+      color: #0b57d0;
+    }
+    .week-chip input {
+      display: none;
+    }
+    #stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    .stat-chip {
+      font-size: 11px;
+      padding: 2px 8px;
+      background: #f0f0f0;
+      border-radius: 12px;
+      color: #555;
+    }
+    .buttons {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
     button {
-      width: 100%;
+      flex: 1;
       padding: 8px;
       font-size: 13px;
       cursor: pointer;
@@ -59,6 +125,7 @@
       background: #f0f0f0;
     }
     #download {
+      flex: 2;
       background: #0b57d0;
       color: #fff;
       border-color: #0b57d0;
@@ -74,7 +141,9 @@
   <div id="overview" style="display:none;">
     <h3>Rooster</h3>
     <div id="unknown"></div>
-    <div style="max-height: 400px; overflow-y: auto; margin-bottom: 10px;">
+    <div id="conflicts"></div>
+    <div id="week-filter"></div>
+    <div style="max-height: 400px; overflow-y: auto;">
       <table>
         <thead>
           <tr><th>Datum</th><th>Dienst</th><th>Van</th><th>Tot</th></tr>
@@ -82,7 +151,11 @@
         <tbody id="shifts"></tbody>
       </table>
     </div>
-    <button id="download"></button>
+    <div id="stats"></div>
+    <div class="buttons">
+      <button id="download"></button>
+      <button id="copy">Kopieer als tekst</button>
+    </div>
   </div>
 
   <script src="config.js"></script>

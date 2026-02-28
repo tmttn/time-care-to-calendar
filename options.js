@@ -7,11 +7,11 @@ loadConfig(function (codes) {
     return aU - bU;
   });
   keys.forEach(function (code) {
-    addRow(code, codes[code].name, codes[code].action);
+    addRow(code, codes[code].name, codes[code].color, codes[code].action);
   });
 });
 
-function addRow(code, name, action) {
+function addRow(code, name, color, action) {
   var tr = document.createElement('tr');
 
   var tdCode = document.createElement('td');
@@ -27,6 +27,13 @@ function addRow(code, name, action) {
   inputName.value = name || '';
   inputName.className = 'name-input';
   tdName.appendChild(inputName);
+
+  var tdColor = document.createElement('td');
+  var inputColor = document.createElement('input');
+  inputColor.type = 'color';
+  inputColor.value = color || '#999999';
+  inputColor.className = 'color-input';
+  tdColor.appendChild(inputColor);
 
   var tdAction = document.createElement('td');
   var select = document.createElement('select');
@@ -63,13 +70,14 @@ function addRow(code, name, action) {
 
   tr.appendChild(tdCode);
   tr.appendChild(tdName);
+  tr.appendChild(tdColor);
   tr.appendChild(tdAction);
   tr.appendChild(tdDelete);
   tbody.appendChild(tr);
 }
 
 document.getElementById('add').addEventListener('click', function () {
-  addRow('', '', 'export');
+  addRow('', '', '#999999', 'export');
 });
 
 document.getElementById('save').addEventListener('click', function () {
@@ -81,6 +89,7 @@ document.getElementById('save').addEventListener('click', function () {
     if (!code) return;
     codes[code] = {
       name: row.querySelector('.name-input').value.trim() || code,
+      color: row.querySelector('.color-input').value,
       action: row.querySelector('.action-input').value
     };
   });
